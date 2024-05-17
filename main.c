@@ -103,7 +103,7 @@ int main(void) {
 */
 
 		for (int pos=0; pos <PASSWORD_LENGTH; pos++){
-			FndData(pos, inputPassword[PASSWORD_LENGTH -1 -pos]);
+			FndData(pos, inputPassword[PASSWORD_LENGTH -1 -pos];
 		}
         //delay(1);  // 짧은 지연을 추가하여 깜박임 방지
     }
