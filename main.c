@@ -4,188 +4,114 @@
 #include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
-
-
 #include "project.h"
 
-#define PASSWORD_LENGTH 4
-#define MAX_DIGITS 4
 
+#define PASSWORD_LENGTH 6
 
-
-char setpassword[PASSWORD_LENGTH+1] = "1234";
-int currentPosition = 0;
-volatile int ledState = 0;
-
-unsigned int fndpattern[10] = {
-	0x00, //0
-    0x01, // 1
-    0x02, // 2
-    0x03, // 3
-    0x04, // 4
-    0x05, // 5
-    0x06, // 6
-    0x07, // 7
-    0x08, // 8
-    0x09  // 9
-};
-/*
- * 	0x3F, //0
-    0x06, // 1
-    0x5B, // 2
-    0x4F, // 3
-    0x66, // 4
-    0x6D, // 5
-    0x7D, // 6
-    0x07, // 7
-    0x7F, // 8
-    0x6F  // 9
- */
+int password[PASSWORD_LENGTH] = { 1, 2, 3, 4, 5, 6 };  // 설정된 비밀번호
+int inputPassword[PASSWORD_LENGTH] = { 0 };  // 입력된 비밀번호
+int currentPos = 0;  // 현재 비밀번호 입력 위치
 
 void sig_handler(int sig);
 
-void updatefnd(int *digits){
-	for(int j=3;j>=0;j--){
-		for(int i=0;i <MAX_DIGITS;i++){
-		FndData(j, fndpattern[digits[i]], 0);
+int main(void) {
+    signal(SIGINT, sig_handler);
+
+    if (wiringPiSetupGpio() == -1) {
+        fprintf(stdout, "Unable to start wiringPi GPIO: %s\n", strerror(errno));
+        return 1;
+    }
+
+    initButton();
+    initFnd();
+
+    int nFndPosition = 0;
+
+    while (1) {
+        int buttonState = readButton();
+
+        if (buttonState == 1) {  // BUTTON_PIN1 눌림
+            inputPassword[currentPos]++;
+            
+            if (inputPassword[currentPos] > 9) {
+                inputPassword[currentPos] = 0;
+            }
+            printf("inputPassword :%d\n", inputPassword[currentPos]);
+          
+            delay(200);  // 디바운싱을 위한 지연
+        }
+
+        if (buttonState == 2) {  // BUTTON_PIN2 눌림
+            currentPos++;
+            if (currentPos >= PASSWORD_LENGTH) {
+                currentPos = 0;
+            }
+            printf("currentPos: %d\n", currentPos);
+            delay(200);  // 디바운싱을 위한 지연
+            
+        }
+
+        if (buttonState & (1<< 2)) {  // BUTTON_PIN3 눌림
+            for (int i = 0; i < PASSWORD_LENGTH; i++) {
+                inputPassword[i] = 0;
+            }
+            printf("clear\n");
+            currentPos = 0;
+            delay(200);  // 디바운싱을 위한 지연
+        }
+
+        if (buttonState &(1<<3)) {  // BUTTON_PIN4 눌림
+            int isCorrect = 1;
+            for (int i = 0; i < PASSWORD_LENGTH; i++) {
+                if (inputPassword[i] != password[i]) {
+					
+                    isCorrect = 0;
+                    break;
+                }
+            }
+            
+     
+            printf("Password Check\n");
+            if (isCorrect) {
+                printf("PASS\n");
+             
+            }
+            else {
+                printf("WRONG\n");
+            }
+            delay(200);  // 디바운싱을 위한 지연
+            
+            
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
+			printf("%d", inputPassword[i]);
+			delay(100);
 		}
-	}
-}
-
-void initFndDisplay() {
-    int digits[MAX_DIGITS] = {0};
-    updatefnd(digits);
-}
-PI_THREAD(led){
-	while(1){
-		if (ledState ==1 ) {
-			controlLed(0x01);
-			delay(500);
-			controlLed(0x02);
-			delay(500);
-		}
-		else {
-			controlLed(0x00);
-		}
-		delay(100);
-	}
-}
-
-			
-
-
-
-int main(void){
-	printf("HELLO World\n");
-	signal(SIGINT, sig_handler);
-	
-	if(wiringPiSetupGpio() ==-1) {
-		fprintf(stdout, "Unable to start wiringpi GPIO: %s\n", strerror(errno));
-		return 1;
-	}
-	
-	//initLcd();
-	initLed();
-	initPir(PIR_PIN);
-	initButton();
-	initFnd();
-	
-	//pthread_t threadId;
-	ledState =1;
-	piThreadCreate(led);
-	
-	int digits[MAX_DIGITS] = {0};
-	char inputPassword[PASSWORD_LENGTH +1] = {'\0'};
-	int num = 0x000000;
-	
-	
-	while(1) {
+		printf("\n");
 		
-		updatefnd(digits);
-		
-		int motion_Detected  = readPir(PIR_PIN);
-		//printf("%d", motion_Detected );
-		
-		if (motion_Detected != 0){
-			ledState =1;
-			//initFndDisplay();
-			//memset(inputPassword, '\0', sizeof(inputPassword));  // 사용자 비밀번호 초기화			
-			
-		    while (1) {
-				
-				
-				int buttonStatus = readButton();
-				//printf("ButtonStatus: %d\n", buttonStatus);
-				delay(100);
-				
-				if (buttonStatus  ==1){
-					digits[currentPosition] = (digits[currentPosition] + 1) % 10;
-					
-					num = 0x00000+digits[currentPosition];
-					
-					data = 0x+a+b+c+d;
-					
-					FndData(currentPosition, data, 0);
-					
-					//updatefnd(digits);
-					printf("Button1\n");
-				}
-				
-				if (buttonStatus  == 2){
-					//inputPassword[currentPosition] = '0' + digits[currentPosition];
-					currentPosition = (currentPosition + 1);//% MAX_DIGITS;
-					printf("%d", num);
-					num = (num <<2);
-					//updatefnd(digits);
-					FndData(currentPosition, num, 0);
-					printf("Button2\n");
-				}
-				if (buttonStatus  == 4){
-					memset(digits, 0, sizeof(digits));
-					
-					currentPosition = 0;
-					updatefnd(digits);
-					printf("Button3\n");
-				}
-				
-				if (buttonStatus == 8){
-					printf("Button4\n");
-					for (int i = 0; i < MAX_DIGITS; i++) {
-					inputPassword[i] = '0' + digits[i];
-					}
-                    
-					//inputPassword[MAX_DIGITS] = '\0';
-					
-					if (strcmp(inputPassword, setpassword) == 0 ) {
-						printf("PASS\n");
-					}
-					else {
-						printf("FAIL\n");
-					}
-				delay(500);
-				initFndDisplay();
-				
-				}
-				break;	
-				}
-				
-				
-			}
-			else {
-			ledState = 0;
-			//pthread_kill(led);
+        }
+/*
+        // FND 데이터 업데이트
+        FndData(nFndPosition, inputPassword[nFndPosition]);
 
-		}
-		}
-		
-	
+        // 다음 FND 위치로 이동
+        nFndPosition++;
+        
+        if (nFndPosition >=PASSWORD_LENGTH) {
+            nFndPosition = 0;
+        }
+*/
 
-	
-	//pthread_kill(led);
-	return 0;
+		for (int pos=0; pos <PASSWORD_LENGTH; pos++){
+			FndData(pos, inputPassword[PASSWORD_LENGTH -1 -pos]);
+		}
+        //delay(1);  // 짧은 지연을 추가하여 깜박임 방지
+    }
+
+    return 0;
 }
 
 void sig_handler(int sig) {
-    offFnd();  // 모든 세그먼트 끄기
-    exit(0);   // 프로그램 종료
+    offFnd();
+    exit(0);
 }

@@ -1,41 +1,9 @@
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
 #include <wiringPi.h>
 
-// pir Sensor define
-#define PIR_PIN 27
-
-void initPir(int nPin);
-int readPir(int nPin);
-
-// Led Sensor define
-#define LED1     5
-#define LED2     6
-
-#define LED_MAX      8
-#define LED_POSITION  8
-
-void initLed();
-//ledPosition : 0x01~0xFF
-void controlLed(int nLedPosition);
-
-// Button Sensor define
-#define BUTTON_PIN1	23
-#define BUTTON_PIN2	24
-#define BUTTON_PIN3	25
-#define BUTTON_PIN4 8
-
-#define MAX_KEY_BT_NUM	4
-
-void initButton();
-int readButton();
-
-// fnd Sensor define
 #define FND_A 2
 #define FND_B 3
 #define FND_C 4
-#define FND_D 18
+#define FND_D 17
 #define FND_E 16
 #define FND_F 22
 #define FND_G 10
@@ -70,7 +38,5 @@ int readButton();
 void initFnd();
 void selectFnd(int Position);
 void offFnd();
-void FndData(int position, int value);
-
-// void FndData(int position, long data1, long data2);
+void FndData(int position, long data1, long data2);
 
