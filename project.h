@@ -12,6 +12,8 @@ int readPir(int nPin);
 // Led Sensor define
 #define LED1     5
 #define LED2     6
+#define LED3     12
+
 
 #define LED_MAX      8
 #define LED_POSITION  8

@@ -11,6 +11,7 @@ int readPir(int nPin)
 {
 	int nPirVal = 0;
 	nPirVal = digitalRead(nPin);
+	
 	if (nPirVal == HIGH){
 		if(gnPirState == LOW){
 			printf("Motion detected!\n");
@@ -23,5 +24,6 @@ int readPir(int nPin)
 			gnPirState = LOW;
 		}
 	}
+	
 	return nPirVal;
 }

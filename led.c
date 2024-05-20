@@ -1,6 +1,6 @@
 #include "project.h"
 
-const char LedPinTable[LED_MAX]={LED1, LED2};
+const char LedPinTable[LED_MAX]={LED1, LED2, LED3};
 
 void initLed()
 {
